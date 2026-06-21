@@ -8,7 +8,11 @@ from data_generation import generate_random_configurations, calculate_poses_fk
 URDF_PATH = "/home/michael/Documents/mlik/urdf/ur_description/urdf/ur10_robot.urdf"
 URDF_PACKAGE_PATH = "/home/michael/Documents/mlik/urdf/ur_description/urdf/"
 
-def train_model(robot, model, num_samples=10000, batch_size=32, epochs=30):
+def train_model(robot, model, num_samples=10000, batch_size=32, epochs=30, device='cpu'):
+    print(f"Training on device: {device}")
+
+    model.to(device)
+
     configurations = generate_random_configurations(robot, num_samples)
     tool0_poses = calculate_poses_fk(robot, configurations, "tool0")
 
@@ -25,6 +29,7 @@ def train_model(robot, model, num_samples=10000, batch_size=32, epochs=30):
         model.train()
         total_loss = 0
         for configs, poses in dataloader:
+            configs, poses = configs.to(device), poses.to(device)
             optimizer.zero_grad()
             outputs = model(poses)
             loss = criterion(outputs, configs)
@@ -34,6 +39,8 @@ def train_model(robot, model, num_samples=10000, batch_size=32, epochs=30):
         print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(dataloader)}")
 
 if __name__ == "__main__":
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     robot = pin.RobotWrapper.BuildFromURDF(URDF_PATH, [URDF_PACKAGE_PATH])
     model = UR6DOFModel()
-    train_model(robot, model)
+    train_model(robot, model, device=device)
