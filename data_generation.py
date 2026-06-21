@@ -27,6 +27,14 @@ def calculate_pose_fk(robot: pin.RobotWrapper, q: List[float], frame: str) -> pi
     tool0_pose = data.oMf[tool0_index]
     return tool0_pose
 
+def get_robot_intrinsics(robot: pin.RobotWrapper):
+    # Placeholder for extracting robot intrinsics (e.g., joint limits, link lengths)
+    # This can be expanded based on specific requirements
+    return {
+        "joint_limits": robot.model.lowerPositionLimit,  # Assuming symmetric limits
+        "link_lengths": [robot.model.inertias[i].mass for i in range(robot.model.njoints)],  # Example using mass as a proxy
+    }
+
 if __name__ == "__main__":
     robot = pin.RobotWrapper.BuildFromURDF(URDF_PATH, [URDF_PACKAGE_PATH])
 
